@@ -2,7 +2,7 @@
 
 ## Code under attMPTI
 
-###Installation
+### Installation
 - Install `python` --This repo is tested with `python 3.6.8`.
 - Install `pytorch` with CUDA -- This repo is tested with `torch 1.4.0`, `CUDA 10.1`. 
 It may work with newer versions, but that is not gauranteed.
@@ -145,6 +145,7 @@ For testing, modify `cvfold`, `n_way`, `k_shot` and `num_episode_per_comb` accor
 ```bash
 python3 main_fs.py --config config/[CONFIG_FILE] test True eval_split test weight [PATH_to_SAVED_MODEL]
 ```
+
 ## Model weights
 We provide some trained models at [Download link](https://drive.google.com/drive/folders/1U9OFfEdse2J6Qa8CxRiF7JBDgLHcwAUZ?usp=sharing). 
 
