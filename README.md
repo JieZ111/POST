@@ -1,6 +1,7 @@
 # Prototype Optimization and Self-Training for Few-Shot 3D Point Cloud Semantic Segmentation
 
-## Installation
+## Code under attMPTI
+###Installation
 - Install `python` --This repo is tested with `python 3.6.8`.
 - Install `pytorch` with CUDA -- This repo is tested with `torch 1.4.0`, `CUDA 10.1`. 
 It may work with newer versions, but that is not gauranteed.
@@ -14,9 +15,9 @@ It may work with newer versions, but that is not gauranteed.
     pip install tensorboard h5py transforms3d
     ```
 
-## Usage
-### Data preparation
-#### S3DIS
+### Usage
+#### Data preparation
+##### S3DIS
 1. Download [S3DIS Dataset Version 1.2](http://buildingparser.stanford.edu/dataset.html).
 2. Re-organize raw data into `npy` files by running
    ```
@@ -31,7 +32,7 @@ It may work with newer versions, but that is not gauranteed.
     One folder named `blocks_bs1_s1` will be generated under `./datasets/S3DIS/` by default. 
 
 
-#### ScanNet
+##### ScanNet
 1. Download [ScanNet V2](http://www.scan-net.org/).
 2. Re-organize raw data into `npy` files by running
 	```
@@ -46,8 +47,8 @@ It may work with newer versions, but that is not gauranteed.
     One folder named `blocks_bs1_s1` will be generated under `./datasets/ScanNet/` by default. 
 
 
-### Running 
-#### Training
+#### Running 
+##### Training
 First, pretrain the segmentor which includes feature extractor module on the available training set:
     
     cd scripts
@@ -55,16 +56,10 @@ First, pretrain the segmentor which includes feature extractor module on the ava
 
 Second, train our method:
 	
-	bash train_attMPTI.sh
+	bash train.sh
 
 
-#### Evaluation
-    
-    bash eval_attMPTI.sh
-
-Note that the above scripts are used for 2-way 1-shot on S3DIS (S^0). You can modified the corresponding hyperparameters to conduct experiments on other settings.
-
-#### Evaluation
+##### Evaluation
     """
     bash eval.sh
     """
