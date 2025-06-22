@@ -1,72 +1,62 @@
 # Prototype Optimization and Self-Training for Few-Shot 3D Point Cloud Semantic Segmentation
 
-## Code under attMPTI
+## Code under the experimental setup of attMPTI [1]
 
 ### Installation
-- Install `python` --This repo is tested with `python 3.6.8`.
-- Install `pytorch` with CUDA -- This repo is tested with `torch 1.4.0`, `CUDA 10.1`. 
-It may work with newer versions, but that is not gauranteed.
-- Install `faiss` with cpu version
-- Install 'torch-cluster' with the corrreponding torch and cuda version
-	```
-	pip install torch-cluster==latest+cu101 -f https://pytorch-geometric.com/whl/torch-1.5.0.html
-	```
-- Install dependencies
-    ```
-    pip install tensorboard h5py transforms3d
-    ```
+```
+pip install torch==1.4.0
+pip install torch-cluster==latest+cu101 -f https://pytorch-geometric.com/whl/torch-1.5.0.html
+pip install faiss-cpu tensorboard h5py transforms3d
+ ```
 
 ### Usage
 #### Data preparation
-##### S3DIS
-1. Download [S3DIS Dataset Version 1.2](http://buildingparser.stanford.edu/dataset.html).
-2. Re-organize raw data into `npy` files by running
+**S3DIS**
+1. **Download**: [S3DIS Dataset Version 1.2](http://buildingparser.stanford.edu/dataset.html).
+2. **Preprocessing**: Re-organize raw data into `npy` files:
    ```
    cd ./preprocess
    python collect_s3dis_data.py --data_path $path_to_S3DIS_raw_data
    ```
-   The generated numpy files are stored in `./datasets/S3DIS/scenes/data` by default.
-3. To split rooms into blocks, run 
+   The generated numpy files will be stored in `PATH_to_S3DIS_processed_data/scenes`.
+3. **Splitting Rooms into Blocks**:
+    ```
+   python ./preprocess/room2blocks.py --data_path ./datasets/S3DIS/scenes/
+    ```
 
-    ```python ./preprocess/room2blocks.py --data_path ./datasets/S3DIS/scenes/```
+
+**ScanNet**
+1. **Download**: [ScanNet V2](http://www.scan-net.org/).
+2. **Preprocessing**: Re-organize raw data into `npy` files:
+   ```
+   cd ./preprocess
+   python collect_scannet_data.py --data_path $path_to_ScanNet_raw_data
+   ```
+   The generated numpy files will be stored in `PATH_to_ScanNet_processed_data/scenes`.
+3. **Splitting Rooms into Blocks**:
+   ```
+   python ./preprocess/room2blocks.py --data_path ./datasets/ScanNet/scenes/ --dataset scannet
+   ```
     
-    One folder named `blocks_bs1_s1` will be generated under `./datasets/S3DIS/` by default. 
-
-
-##### ScanNet
-1. Download [ScanNet V2](http://www.scan-net.org/).
-2. Re-organize raw data into `npy` files by running
-	```
-	cd ./preprocess
-	python collect_scannet_data.py --data_path $path_to_ScanNet_raw_data
-	```
-   The generated numpy files are stored in `./datasets/ScanNet/scenes/data` by default.
-3. To split rooms into blocks, run 
-
-    ```python ./preprocess/room2blocks.py --data_path ./datasets/ScanNet/scenes/ --dataset scannet```
-    
-    One folder named `blocks_bs1_s1` will be generated under `./datasets/ScanNet/` by default. 
-
-
 #### Running 
 ##### Training
 First, pretrain the segmentor which includes feature extractor module on the available training set:
-    
+    ```
     cd scripts
     bash pretrain_segmentor.sh
-
+    ```
 Second, train our method:
-	
-	bash train.sh
-
+    ```
+    bash train.sh
+    ```
 
 ##### Evaluation
-    """
+    ```
     bash eval.sh
-    """
+    ```
 
 
-## Code under COSeg
+## Code under the experimental setup of COSeg [2]
 
 ### Installation
 
@@ -91,7 +81,7 @@ pip install pointops2
 | S3DIS | [Download link](https://drive.google.com/file/d/1frJ8nf9XLK_fUBG4nrn8Hbslzn7914Ru/view?usp=drive_link) |
 | ScanNet | [Download link](https://drive.google.com/file/d/19yESBZumU-VAIPrBr8aYPaw7UqPia4qH/view?usp=drive_link) |
 
-#### Preprocessing Instructions
+#### Data preparation
 
 **S3DIS**
 1. **Download**: [S3DIS Dataset Version 1.2](http://buildingparser.stanford.edu/dataset.html).
@@ -122,7 +112,8 @@ pip install pointops2
 
 After preprocessing the datasets, a folder named `blocks_bs1_s1` will be generated under `PATH_to_DATASET_processed_data`. Make sure to update the `data_root` entry in the .yaml config file to `[PATH_to_DATASET_processed_data]/blocks_bs1_s1/data`.
 
-#### Training
+#### Running
+##### Training
 First, pretrain the segmentor which includes feature extractor module on the available training set:
 ```bash
 python3 train_backbone.py --config config/[PRETRAIN_CONFIG] save_path [PATH_to_SAVE_BACKBONE] cvfold [CVFOLD]
@@ -140,13 +131,16 @@ python3 main_fs.py --config config/[CONFIG_FILE] save_path [PATH_to_SAVE_MODEL] 
 Note: By default, when `n_way=1`, `num_episode_per_comb` is set to `1000`. When `n_way=2`, `num_episode_per_comb` is adjusted to `100` to maintain consistency in test set magnitude.
 
 
-#### Testing
+##### Evaluation
 For testing, modify `cvfold`, `n_way`, `k_shot` and `num_episode_per_comb` accordingly, then run:
 ```bash
 python3 main_fs.py --config config/[CONFIG_FILE] test True eval_split test weight [PATH_to_SAVED_MODEL]
 ```
 
-## Model weights
+## Trained Models 
 We provide some trained models at [Download link](https://drive.google.com/drive/folders/1U9OFfEdse2J6Qa8CxRiF7JBDgLHcwAUZ?usp=sharing). 
 
+# Reference
+[1] N. Zhao, T. Chua, G. H. Lee, Few-shot 3D point cloud semantic segmentation, in: IEEE Conference on Computer Vision and Pattern Recognition, 2021, pp. 8873–8882.
+[2] Z. An, G. Sun, Y. Liu, F. Liu, Z. Wu, D. Wang, L. V. Gool, S. J. Belongie, Rethinking few-shot 3D point cloud semantic segmentation, in:IEEE Conference on Computer Vision and Pattern Recognition, 2024, pp. 3996–4006.
 
