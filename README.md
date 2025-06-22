@@ -41,20 +41,19 @@ pip install faiss-cpu tensorboard h5py transforms3d
 #### Running 
 ##### Training
 First, pretrain the segmentor which includes feature extractor module on the available training set:
-
-	```
-	cd scripts
-	bash pretrain_segmentor.sh
-	```
+```
+cd scripts
+bash pretrain_segmentor.sh
+```
 Second, train our method:
 ```
 bash train.sh
 ```
 
 ##### Evaluation
-	```
-	bash eval.sh
-	```
+```
+bash eval.sh
+```
 
 
 ## Code under the experimental setup of COSeg [2]
