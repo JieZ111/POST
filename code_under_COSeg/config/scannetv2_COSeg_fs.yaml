@@ -33,6 +33,8 @@ TRAIN:
   max_num_neighbors: 34 # For KPConv
   ratio: 0.25
   k: 16
+  w: 0.4
+  sigma: 0.3
 
   # training
   aug: True
