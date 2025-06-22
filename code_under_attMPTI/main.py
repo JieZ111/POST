@@ -91,7 +91,8 @@ if __name__ == '__main__':
     parser.add_argument('--train_dim', type=int, default=320, help='training dim for transformer')
     parser.add_argument('--k_connect', type=int, default=200,
                         help='Number of nearest neighbors to construct local-constrained affinity matrix')
-    parser.add_argument('--sigma', type=float, default=1., help='hyeprparameter in gaussian similarity function')
+    parser.add_argument('--w',type=float, default=0.4, help='controling the intensity to which the filtered auxiliary prototypes adjust the original prototypes')    
+    parser.add_argument('--sigma', type=float, default=0.3, help='controling the number of positive anchors and negative anchors')
 
     args = parser.parse_args()
 
