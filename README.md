@@ -47,9 +47,9 @@ First, pretrain the segmentor which includes feature extractor module on the ava
 	bash pretrain_segmentor.sh
 	```
 Second, train our method:
-	```
-	bash train.sh
-	```
+```
+bash train.sh
+```
 
 ##### Evaluation
 	```
