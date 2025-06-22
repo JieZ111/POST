@@ -122,6 +122,8 @@ class COSeg(nn.Module):
         )
 
         self.feat_dim = args.channels[2]
+        self.w = args.w
+        self.sigma = args.sigma
         self.dist_method="cosine"
         self.bk_ffn = nn.Sequential(
             nn.Linear(self.feat_dim + self.feat_dim // 2, 4 * self.feat_dim),
@@ -253,30 +255,29 @@ class COSeg(nn.Module):
         prototypes = [bg_prototype]
         for i in range(self.n_way):
             prototypes = prototypes + [fg_prototypes[i]]      
-        
+ 
+        #optimization prototype module
         for way in range(self.n_way):
             for shot in range(self.k_shot):
-                regulize_loss_fg, loss_fg_mask, surplus_fg_mask, loss_fg_count, surplus_fg_count = self.regulize_fg_L(prototypes, support_feat[way], fg_mask[way], bg_mask[way])
-                loss_fg_mask=()+(loss_fg_mask.view(-1),)
-                NUM=surplus_fg_mask[0].shape[-1]
-                surplus_fg_mask=()+(surplus_fg_mask.view(-1),)
-                lossf1 = (loss_fg_count[0, shot] / NUM).cuda()
-                surf1 = (surplus_fg_count[0, shot] / NUM).cuda()
+                regulize_loss_fg, loss_mask, surplus_mask, loss_count, surplus_count = self.regulize_L(prototypes, support_feat[way], fg_mask[way], bg_mask[way])
+                loss_mask=()+(loss_mask.view(-1),)
+                NUM=surplus_mask[0].shape[-1]
+                surplus_mask=()+(surplus_mask.view(-1),)
+                lossf1 = (loss_count[0, shot] / NUM).cuda()
+                surf1 = (surplus_count[0, shot] / NUM).cuda()
                 if lossf1>=0.3:
-                    loss_support_fg_feat = self.getPrototypes1(support_x_low[way],support_feat[way],loss_fg_mask,k=self.n_subprototypes)
-                    att_loss_fg_prototype0 = self.MultiHeadAttention1(loss_support_fg_feat.view(1, 192),
-                                                                  fg_prototypes[way].view(1, 192),
-                                                                  fg_prototypes[way].view(1, 192)).view(1, 192).cuda()
-                    fg_prototypes[way] = 0.3*lossf1 * att_loss_fg_prototype0 + fg_prototypes[way]
-                    #bg_prototype=bg_prototype-lossf1 * att_loss_fg_prototype0
+                    loss_support_feat = self.getMaskedFeatures(support_feat, loss_mask.cuda())
+                    att_loss_prototype0 = self.MultiHeadAttention1(loss_support_feat[way, shot].view(1, 192),
+                                                                  prototypes[way].view(1, 192),
+                                                                  prototypes[way].view(1, 192)).view(1, 192).cuda()
+                    prototypes[way] = self.w * att_loss_prototype0 + prototypes[way]
                 if surf1>=0.3:
-                    surplus_support_fg_feat = self.getPrototypes1(support_x_low[way],support_feat[way],surplus_fg_mask,k=self.n_subprototypes)
-                    att_surplus_fg_prototype0 = self.MultiHeadAttention1(surplus_support_fg_feat[way, shot].view(1, 192),
-                                                                     fg_prototypes[way].view(1, 192),
-                                                                     fg_prototypes[way].view(1, 192)).view(1,192).cuda()
-                    fg_prototypes[way] = fg_prototypes[way] - 0.3*att_surplus_fg_prototype0 * surf1
-                    #bg_prototype=bg_prototype+att_surplus_fg_prototype0 * surf1
-            fg_prototypes[way] = fg_prototypes[way].view(192)
+                    surplus_support_feat = self.getMaskedFeatures(support_feat, surplus_mask.cuda())
+                    att_surplus_prototype0 = self.MultiHeadAttention1(surplus_support_feat[way, shot].view(1, 320),
+                                                                     prototypes[way].view(1, 192),
+                                                                     prototypes[way].view(1, 192)).view(1,192).cuda()
+                    prototypes[way] = prototypes[way] - att_surplus_prototype0 * self.w
+            prototypes[way] = prototypes[way].view(192)
         
         #bg_prototype = bg_prototype.view(192)
         #fg_prototypes = torch.stack(fg_prototypes).view(self.n_way, 192)
@@ -325,7 +326,7 @@ class COSeg(nn.Module):
 
         
         return final_pred, loss+align_loss+self_regulize_loss
-    def regulize_fg_L(self, prototype_supp, supp_fts, fore_mask,back_mask):
+    def regulize_L(self, prototype_supp, supp_fts, fore_mask,back_mask):
         n_ways, n_shots = self.n_way, self.k_shot
         Num=len(fore_mask)
         loss_mask = torch.ones(1, n_shots, Num)
@@ -349,24 +350,14 @@ class COSeg(nn.Module):
 
                 supp_label[fore_mask[0, shot] == 1] = 1
                 supp_label[fore_mask[0, shot] == 0] = 0
-                supp_label1 = torch.where(supp_dist[0] >(torch.mean(supp_dist[0])), torch.ones_like(supp_dist[0]), torch.zeros_like(supp_dist[0]))
+                supp_label1 = torch.where(supp_dist[0] >self.sigma), torch.ones_like(supp_dist[0]), torch.zeros_like(supp_dist[0]))
 
                 ###
-
-#                allcount = (mask[way, shot] != supp_label1).sum().item()
                 count1[0,shot] = (fore_mask[0, shot] - supp_label1 == 1).sum().item()
                 count2[0,shot] = (fore_mask[0, shot] - supp_label1 == -1).sum().item()
-                #print(allcount, count1[way,shot],count2[way,shot])
-                # print(loss_mask[way, shot],surplus_mask[way, shot])
+
                 loss_mask[0, shot] = torch.where(fore_mask[0, shot].cpu() - supp_label1.cpu() == 1, A, B)
                 surplus_mask[0, shot] = torch.where(fore_mask[0, shot].cpu() - supp_label1.cpu() == -1, A, B)
-                
-                #print(loss_mask[way, shot].shape, loss_mask[way, shot], (loss_mask[way, shot] == 1).sum().item())
-                #print(surplus_mask[way, shot].shape, surplus_mask[way, shot],
-                #(surplus_mask[way, shot] == 1).sum().item())
-
-                #print(supp_label.shape,supp_label.unsqueeze(0).shape,supp_label.unsqueeze(0),supp_pred.shape,supp_pred)
-                #loss = loss + F.cross_entropy(supp_pred, supp_label.unsqueeze(0), ignore_index=255) / n_shots / n_ways
         return loss, loss_mask, surplus_mask,count1,count2
     def getFeatures(self, ptclouds, offset, gt, query_base_y=None):
         """
