@@ -90,30 +90,24 @@ class ProtoNet(nn.Module):
         #optimization prototype module
         for way in range(self.n_way):
             for shot in range(self.k_shot):
-                regulize_loss_fg, loss_fg_mask, surplus_fg_mask, loss_fg_count, surplus_fg_count = self.regulize_fg_L(
+                regulize_loss, loss_mask, surplus_mask, loss_count, surplus_count = self.regulize_L(
                     prototypes, support_feat, fg_mask, bg_mask)
-                lossf1 = (loss_fg_count[way, shot] / 2048).cuda()
-                surf1 = (surplus_fg_count[way, shot] / 2048).cuda()
+                lossf1 = (loss_count[way, shot] / 2048).cuda()
+                surf1 = (surplus_count[way, shot] / 2048).cuda()
                 if lossf1>=0.01:
-                    loss_support_fg_feat = self.getMaskedFeatures(support_feat, loss_fg_mask.cuda())
-                    att_loss_fg_prototype0 = self.MultiHeadAttention1(loss_support_fg_feat[way, shot].view(1, 320),
-                                                                  fg_prototypes[way].view(1, 320),
-                                                                  fg_prototypes[way].view(1, 320)).view(1, 320).cuda()
-                    fg_prototypes[way] = lossf1 * att_loss_fg_prototype0 + fg_prototypes[way]
-                if surf1>=0.01:
-                    surplus_support_fg_feat = self.getMaskedFeatures(support_feat, surplus_fg_mask.cuda())
-                    att_surplus_fg_prototype0 = self.MultiHeadAttention1(surplus_support_fg_feat[way, shot].view(1, 320),
-                                                                     fg_prototypes[way].view(1, 320),
-                                                                     fg_prototypes[way].view(1, 320)).view(1,
-                                                                                                           320).cuda()
-                    fg_prototypes[way] = fg_prototypes[way] - att_surplus_fg_prototype0 * surf1
-            fg_prototypes[way] = fg_prototypes[way].view(320)
+                    loss_support_feat = self.getMaskedFeatures(support_feat, loss_mask.cuda())
+                    att_loss_prototype0 = self.MultiHeadAttention1(loss_support_feat[way, shot].view(1, 320),
+                                                                  prototypes[way].view(1, 320),
+                                                                  prototypes[way].view(1, 320)).view(1, 320).cuda()
+                    prototypes[way] = self.w * att_loss_prototype0 + prototypes[way]
 
-        bg_prototype = bg_prototype.view(320)
-        fg_prototypes = torch.stack(fg_prototypes).view(self.n_way, 320)
-        prototypes = [bg_prototype]
-        for i in range(self.n_way):
-            prototypes = prototypes + [fg_prototypes[i]]
+                if surf1>=0.01:
+                    surplus_support_feat = self.getMaskedFeatures(support_feat, surplus_mask.cuda())
+                    att_surplus_prototype0 = self.MultiHeadAttention1(surplus_support_feat[way, shot].view(1, 320),
+                                                                     prototypes[way].view(1, 320),
+                                                                     prototypes[way].view(1, 320)).view(1,320).cuda()
+                    prototypes[way] = prototypes[way] - att_surplus_prototype0 * self.w
+            prototypes[way] = prototypes[way].view(320)
 
         self_regulize_loss = 0
         if self.use_supervise_prototype:
@@ -176,7 +170,7 @@ class ProtoNet(nn.Module):
 
                 loss = loss + F.cross_entropy(supp_pred, supp_label.unsqueeze(0), ignore_index=255) / n_shots / n_ways
         return loss
-    def regulize_fg_L(self, prototype_supp, supp_fts, fore_mask,back_mask):
+    def regulize_L(self, prototype_supp, supp_fts, fore_mask,back_mask):
         n_ways, n_shots = self.n_way, self.k_shot
 
         loss_mask = torch.ones(n_ways, n_shots, 2048)
@@ -189,7 +183,7 @@ class ProtoNet(nn.Module):
         # Compute the support loss
         loss = 0
         for way in range(n_ways):
-            prototypes = [prototype_supp[way + 1],prototype_supp[way + 1]]
+            prototypes = [prototype_supp[way],prototype_supp[way]]
             for shot in range(n_shots):
                 img_fts = supp_fts[way, shot].unsqueeze(0)
                 supp_dist = [self.calculateSimilarity(img_fts, prototype, self.dist_method) for prototype in prototypes]
@@ -200,22 +194,15 @@ class ProtoNet(nn.Module):
 
                 supp_label[fore_mask[way, shot] == 1] = 1
                 supp_label[back_mask[way, shot] == 1] = 0
-                supp_label1 = torch.where(supp_dist[0] >(torch.mean(supp_dist[0])), torch.ones_like(supp_dist[0]), torch.zeros_like(supp_dist[0]))
+                supp_label1 = torch.where(supp_dist[0] >self.sigma), torch.ones_like(supp_dist[0]), torch.zeros_like(supp_dist[0]))
 
-                ###
 
-#                allcount = (mask[way, shot] != supp_label1).sum().item()
                 count1[way,shot] = (fore_mask[way, shot] - supp_label1 == 1).sum().item()
                 count2[way,shot] = (fore_mask[way, shot] - supp_label1 == -1).sum().item()
-                #print(allcount, count1[way,shot],count2[way,shot])
-                # print(loss_mask[way, shot],surplus_mask[way, shot])
+
                 loss_mask[way, shot] = torch.where(fore_mask[way, shot].cpu() - supp_label1.cpu() == 1, A, B)
                 surplus_mask[way, shot] = torch.where(fore_mask[way, shot].cpu() - supp_label1.cpu() == -1, A, B)
-                #print(loss_mask[way, shot].shape, loss_mask[way, shot], (loss_mask[way, shot] == 1).sum().item())
-                #print(surplus_mask[way, shot].shape, surplus_mask[way, shot],
-                #(surplus_mask[way, shot] == 1).sum().item())
 
-                #print(supp_label.shape,supp_label.unsqueeze(0).shape,supp_label.unsqueeze(0),supp_pred.shape,supp_pred)
                 loss = loss + F.cross_entropy(supp_pred, supp_label.unsqueeze(0), ignore_index=255) / n_shots / n_ways
         return loss, loss_mask, surplus_mask,count1,count2
     def getFeatures(self, x):
