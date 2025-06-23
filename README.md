@@ -138,9 +138,9 @@ python3 main_fs.py --config config/[CONFIG_FILE] test True eval_split test weigh
 ```
 
 ## Trained Models 
-We provide some trained models at [Download link](https://drive.google.com/drive/folders/1U9OFfEdse2J6Qa8CxRiF7JBDgLHcwAUZ?usp=sharing). 
+We provide some trained models via Google Drive [Download link](https://drive.google.com/drive/folders/1U9OFfEdse2J6Qa8CxRiF7JBDgLHcwAUZ?usp=sharing). 
 
-# Reference
+# References
 [1] N. Zhao, T. Chua, G. H. Lee, Few-shot 3D point cloud semantic segmentation, in: IEEE Conference on Computer Vision and Pattern Recognition, 2021, pp. 8873–8882.
 
 [2] Z. An, G. Sun, Y. Liu, F. Liu, Z. Wu, D. Wang, L. V. Gool, S. J. Belongie, Rethinking few-shot 3D point cloud semantic segmentation, in:IEEE Conference on Computer Vision and Pattern Recognition, 2024, pp. 3996–4006.
