@@ -37,6 +37,8 @@ class ProtoNet(nn.Module):
         super(ProtoNet, self).__init__()
         self.n_way = args.n_way
         self.k_shot = args.k_shot
+        self.w = args.w
+        self.sigma = args.sigma
         self.dist_method = 'cosine'
         self.in_channels = args.pc_in_dim
         self.n_points = args.pc_npts
