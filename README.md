@@ -143,5 +143,5 @@ We provide some trained models via Google Drive [Download link](https://drive.go
 # References
 [1] N. Zhao, T. Chua, G. H. Lee, Few-shot 3D point cloud semantic segmentation, in: IEEE Conference on Computer Vision and Pattern Recognition, 2021, pp. 8873–8882.
 
-[2] Z. An, G. Sun, Y. Liu, F. Liu, Z. Wu, D. Wang, L. V. Gool, S. J. Belongie, Rethinking few-shot 3D point cloud semantic segmentation, in:IEEE Conference on Computer Vision and Pattern Recognition, 2024, pp. 3996–4006.
+[2] Z. An, G. Sun, Y. Liu, F. Liu, Z. Wu, D. Wang, L. V. Gool, S. J. Belongie, Rethinking few-shot 3D point cloud semantic segmentation, in: IEEE Conference on Computer Vision and Pattern Recognition, 2024, pp. 3996–4006.
 
