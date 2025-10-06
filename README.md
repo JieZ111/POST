@@ -143,8 +143,6 @@ For testing, modify `cvfold`, `n_way`, `k_shot` and `num_episode_per_comb` accor
 python3 main_fs.py --config config/[CONFIG_FILE] test True eval_split test weight [PATH_to_SAVED_MODEL]
 ```
 
-## Trained Models 
-We provide some trained models via Google Drive [Download link](https://drive.google.com/drive/folders/1U9OFfEdse2J6Qa8CxRiF7JBDgLHcwAUZ?usp=sharing). 
 
 # References
 [1] N. Zhao, T. Chua, G. H. Lee, Few-shot 3D point cloud semantic segmentation, in: IEEE Conference on Computer Vision and Pattern Recognition, 2021, pp. 8873–8882.
