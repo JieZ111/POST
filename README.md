@@ -10,7 +10,7 @@ year = {2026},
 issn = {0010-4485},
 doi = {https://doi.org/10.1016/j.cad.2025.103976},
 url = {https://www.sciencedirect.com/science/article/pii/S001044852500137X},
-author = {Jie Zhou and Yong Zhao and Fan Zhong},
+author = {Jie Zhou and Yong Zhao and Fan Zhong}
 }
 ```
 ## Code under the experimental setup of attMPTI [1]
