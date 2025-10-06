@@ -1,5 +1,7 @@
 # Prototype Optimization and Self-Training for Few-Shot 3D Point Cloud Semantic Segmentation
+Our work on few-shot 3D point cloud segmentation has been accepted for publication by Computer-Aided Design. If you find our work useful, please cite our paper:
 
+J. Zhou, Y. Zhao, and F. Zhong. Prototype optimization and self-training for few-shot 3D point cloud semantic segmentation. Computer-Aided Design, 190:103976, 2026. DOI: 10.1016/j.cad.2025.103976.
 ## Code under the experimental setup of attMPTI [1]
 
 ### Installation
