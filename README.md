@@ -3,6 +3,7 @@
 ## Paper information
 
 Our work has been published by Computer-Aided Design. If you find our work useful, please cite our paper:
+
 Jie Zhou, Yong Zhao, Fan Zhong. Prototype optimization and self-training for few-shot 3D point cloud semantic segmentation. Computer-Aided Design. 2026, 190: 103976.
 
 ## Code under the experimental setup of attMPTI [1]
